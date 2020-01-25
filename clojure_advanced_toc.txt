@@ -1,0 +1,43 @@
+Day 1
+    Regular Expressions
+    Exceptions
+      ex-info
+    Polymorphism and Types
+      Multimethods
+        Processing trees
+      Protocols
+      defrecord and deftype
+    Parallel Programming and Concurrency
+      Delays, futures and promises
+      Atoms, refs and agents
+    Core.Async
+      Building data pipelines
+    Transducers
+
+Day 2
+    Macros
+      Code as data
+           Building code using lists
+           Let’s make clojure infix
+      Syntax Quote and unquote
+      Macroexpansion
+      Control flow
+              unless macro - Hello world of macros
+              randomly – pick a random path through your code
+              Do primes – a for loop for primes
+      Hygienic macros and avoiding variable capture
+      Classic macros
+              with- macro
+
+Day 3
+    Macros
+      When not to use macros
+           Macros are not values
+           Macros are contagious
+      Making things faster
+      Doing things at compile time
+      Anaphoric Macros
+      Clotest – unit testing framework
+              writing a unit testing framework for clojure
+      LSL - log specification language
+      DSL for parsing log files
