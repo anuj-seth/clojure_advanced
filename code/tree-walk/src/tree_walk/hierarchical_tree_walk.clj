@@ -1,11 +1,5 @@
-(ns tree-walk.core
-  (:require [clojure.walk :as walk])
-  (:gen-class))
-
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+(ns tree-walk.hierarchical-tree-walk
+  (:require [clojure.walk :as walk]))
 
 ;; the arithmetic expression is
 ;; 1-2/(3-4)+5*6
@@ -23,36 +17,38 @@
 (defn expression-tree
   []
   [:expr
-   [:add
-    [:sub
+   [:arithmetic/add
+    [:arithmetic/sub
      [:number "1"]
-     [:div [:number "2"] [:sub [:number "3"] [:number "4"]]]]
-    [:mul [:number "5"] [:number "6"]]]])
+     [:arithmetic/div [:number "2"] [:arithmetic/sub [:number "3"] [:number "4"]]]]
+    [:arithmetic/mul [:number "5"] [:number "6"]]]])
 
+(derive :arithmetic/add :arithmetic/binary)
+(derive :arithmetic/sub :arithmetic/binary)
+(derive :arithmetic/mul :arithmetic/binary)
+(derive :arithmetic/div :arithmetic/binary)
+
+;; defmulti does not let you redefine
+;; the dispatch function on the fly
+;; do ns-unmap then re-eval dispatch
+;; as well as all methods
+;;(ns-unmap *ns* 'eval-node)
 
 (defmulti eval-node (fn [x]
-                      (println x)
+                      ;;(println x)
                       (first x)))
 
 (defmethod eval-node :number
   [[_ number]]
   (read-string number))
 
-(defmethod eval-node :mul
-  [[_ lhs rhs]]
-  (* lhs rhs))
-
-(defmethod eval-node :add
-  [[_ lhs rhs]]
-  (+ lhs rhs))
-
-(defmethod eval-node :sub
-  [[_ lhs rhs]]
-  (- lhs rhs))
-
-(defmethod eval-node :div
-  [[_ lhs rhs]]
-  (/ lhs rhs))
+(defmethod eval-node :arithmetic/binary
+  [[op lhs rhs]]
+  (let [binary-ops {:arithmetic/add +
+                    :arithmetic/sub -
+                    :arithmetic/div /
+                    :arithmetic/mul *}]
+    ((binary-ops op) lhs rhs)))
 
 (defmethod eval-node :expr
   [[_ x]]
