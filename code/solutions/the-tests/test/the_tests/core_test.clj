@@ -123,3 +123,34 @@
 
 (is-in delhi)
 (is-in delhi-airport)
+
+
+
+
+(derive ::superman ::superhero)
+(derive ::wonder-woman ::superhero)
+(derive ::lex-luthor ::supervillain)
+
+
+(isa? ::superman ::superhero)
+
+(isa? ::superman ::supervillain)
+
+(isa? ::lex-luthor ::supervillain)
+
+(defmulti evil? :name)
+
+(defmethod evil? ::superhero [_] :never)
+
+(defmethod evil? ::lex-luthor [_] :always)
+
+(evil? {:name ::superman})
+
+(evil? {:name ::lex-luthor})
+
+(derive ::batman ::superhero)
+(defmethod evil? ::batman [_] :only-when-ends-justify-means)
+
+(evil? {:name ::batman})
+
+

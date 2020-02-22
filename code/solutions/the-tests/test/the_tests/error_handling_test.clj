@@ -23,6 +23,7 @@
      :data (zipmap ks data)}))
 
 (defn ok-or-never
+  "Call f on the data as long as status is :ok"
   [f {:keys [status msg] :as data}]
   (if (= :ok status)
     (f data)

@@ -1,4 +1,4 @@
-(ns the-tests.error-handling-test
+(ns the-tests.error-handling-test-short-circuit
   (:require  [clojure.test :refer :all]
              [clojure.string :as string]))
 
@@ -22,10 +22,11 @@
     {:status :ok
      :data (zipmap ks data)}))
 
-(defn ok-or-never
-  "Call f on the data as long as status is :ok"
+(defn ok-or-exit
   [f {:keys [status msg] :as data}]
-  __)
+  (if (= :ok status)
+    (f data)
+    (reduced data)))
 
 (deftest error-handler-test
   (let [data ["03/22|08:51:06|TRACE|...read_physical_netif|Home list entries returned = 7"
@@ -33,10 +34,10 @@
               "03/22|08:51:06|INFO|...read_physical_netif|index #1, interface TR1 has address 9.37.65.139, ifidx 1"
               "03/22|08:51:06|INFO|...read_physical_netif|index #2, interface LINK11 has address 9.67.100.1, ifidx 2"
               "03/22|08:51:06|INFO|index #3, interface LINK12 has address 9.67.101.1, ifidx 3"]
-        after-processing (map #(->> {:status :ok :line %}
-                                    (ok-or-never parse)
-                                    (ok-or-never validate)
-                                    (ok-or-never transform))
+        after-processing (map (fn [line]
+                                (reduce #(ok-or-exit %2 %1)
+                                        {:status :ok :line line}
+                                        [parse validate transform]))
                               data)]
     (is (= [:ok :ok :ok :ok :error]
            (map :status after-processing)))

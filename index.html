@@ -187,13 +187,27 @@
                     <pre><code data-trim>
                     ;; the accepted wisdom these days is to use ex-info
                     (try
-                        (throw (ex-info "caught exception: "
+                        (throw (ex-info "thrown exception: "
                                         {:msg "this is an exception"}))
                         (catch Exception e (ex-data e)))
                     ;=> {:msg "this is an exception"}
 
                     ;; you can print the ex-info object to get the
                     ;; full stack trace
+                    </code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-trim>
+                    ;; the message can be retrieved like this
+                    (try
+                        (throw (ex-info "thrown exception: "
+                                        {:msg "this is an exception"}))
+                        (catch Exception e (.getMessage e)))
+                    ;=> "thrown exception: "
+
+                    ;; the message is added to satisfy the base Throwable
+                    ;; that has a detailMessage field in it
                     </code></pre>
                 </section>
 
@@ -212,56 +226,132 @@
                     ```
                 </section>
 
+                <section data-markdown>
+                    ```clj
+                    ;; a concern that you may have in the previous example:
+                    ;; ok-or-never gets called even after one of the functions
+                    ;; returns :error
+
+                    ;; reduced to the rescue
+                    ;; a slightly convoluted example
+                    (reduce (fn [acc idx]
+                              (if (= idx 26)
+                                (reduced acc)
+                                (assoc acc
+                                       (char (+ 65 idx)) 
+                                       (inc idx))))
+                            {}
+                            (range))
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; open the file error_handling_test_short_circuit.clj
+                    ;; to see if you can use reduced
+
+                    ;; and of course make the test case pass
+                    ```
+                </section>
+
 
 				        <section>
-                    <h2>Clojure Syntax</h2>
-                    <h4>Control Flow</h4>
-                    <p>Let's look at the three basic control flow operators</p>
-                    <p>if, do and when</p>
+                    <h2>Multimethods</h2>
 				        </section>
-                
-                <section data-markdown>
-                    ```clj
-                    ; this is what an if condition looks like
-                    ; (if boolean-form
-                    ;     then-form
-                    ;     optional-else-form)
-                    (if true
-                      "hello"
-                      "bye")
-                    ;=> "hello"
-
-                    ; if you omit the else form and your boolean 
-                    ; expression returns false then what will happen ?
-                    (if false
-                      "hello")
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; you can of course call other functions in the
-                    ; boolean-form as well the then and else forms
-                    (if (zero? 1)
-                      (inc 1)
-                      (dec 1))
-                    ;=> 0
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; all lisp/clojure forms return a value when evaluated.
-                    ; in some cases that value may be nil.
-                    ; and that's why Alan Perlis said .....
-                    ```
-                </section>
 
                 <section>
-	                  <blockquote>
-	                      Lisp programmers know the value of everything and the cost of nothing.<br>—Alan Perlis
-	                  </blockquote>
+                    <p>Clojure supports runtime polymorphism through multimethods</p>
+                    <p>Multimethods provide dispatch on an arbitrary function</p>
+                    <p>Contrast this with OO polymorphism which dispatches on type of one variable</p>
+				        </section>
+
+                <section data-markdown>
+                    ```clj
+                    (defmulti data-handler :status)
+                    (defmethod data-handler :error
+                      [m]
+                      (println "we have an error"))
+                    (defmethod data-handler :ok
+                      [m]
+                      (println "we have good data"))
+                    (defmethod data-handler :default
+                      [m]
+                      (println "we don't know what we have"))
+
+                    (data-handler {:status :error})
+                    ;=> we have an error
+                    (data-handler {})
+                    ;=> we don't know what we have
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; open the file tree_walk_test.clj
+                    ;; write a multimethod to evaluate the tree nodes
+                    ;; and make the test case pass
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; did you notice that all our binary operators
+                    ;; had the same code.
+
+                    ;; hierarchies allow us to define relationships
+                    ;; most commonly between keywords
+                    (derive ::superman ::superhero)
+                    (derive ::wonder-woman ::superhero)
+                    (derive ::lex-luthor ::supervillain)
+
+                    ;; what do the :: tell you ?
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; isa? can be used to query the hierarchy
+
+                    (isa? ::superman ::superhero)
+                    ;=> true
+                    (isa? ::superman ::supervillain)
+                    ;=> false
+                    (isa? ::lex-luthor ::supervillain)
+                    ;=> true
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    (defmulti evil? :name)
+
+                    (defmethod evil? ::superhero [_] :never)
+
+                    (defmethod evil? ::lex-luthor [_] :always)
+
+                    (evil? {:name ::superman})
+                    ;; :never
+                    (evil? {:name ::lex-luthor})
+                    ;; :always
+                    ```
 	              </section>
+
+                <section data-markdown>
+                    ```clj
+                    (derive ::batman ::superhero)
+                    (defmethod evil? ::batman [_] :only-when-ends-justify-means)
+
+                    (evil? {:name ::batman})
+                    ```
+	              </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; open the file hierarchical_tree_walk_test.clj
+                    ;; complete the multimethod definition
+                    ;; and make the test case pass
+                    ```
+                </section>
 
                 <section data-markdown>
                     ```clj
