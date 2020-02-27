@@ -16,19 +16,19 @@
 
 		    <link rel="stylesheet" href="reveal.js/css/reveal.css">
 		    <link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
-		    <link rel="stylesheet" href="custom.css">
+		    <!-- link rel="stylesheet" href="custom.css"-->
 
 		    <!-- Code syntax highlighting -->
 		    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
 
 		    <!-- Printing and PDF exports -->
-		    <script>
+		    <!-- script>
 			   var link = document.createElement( 'link' );
 			   link.rel = 'stylesheet';
 			   link.type = 'text/css';
 			   link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
 			   document.getElementsByTagName( 'head' )[0].appendChild( link );
-		    </script>
+		    </script-->
 
 		    <!--[if lt IE 9]>
 		        <script src="lib/js/html5shiv.js"></script>
@@ -254,6 +254,9 @@
                     ```
                 </section>
 
+				        <section>
+                    <h2>Polymorphism and Types</h2>
+				        </section>
 
 				        <section>
                     <h2>Multimethods</h2>
@@ -353,66 +356,184 @@
                     ```
                 </section>
 
+                <section>
+                    <h2>Protocols and Types</h2>
+				        </section>
+
+                <section>
+                    <p>Protocols allow polymorphism on the type of the first argument</p>
+                    <p>They are very fast</p>
+                    <p>Don't worry if you have never used them</p>
+				        </section>
+
+                <section>
+                    <p>Protocols provide a solution to the expression problem</p>
+                    <p>What is the expression problem ?</p>
+                    <p>Extend preexisting types to new methods</p>
+                    <p>Extend preexisting methods to new types</p>
+                    <p>Without touching existing code</p>
+                </section>
+
+                <section>
+                    <font size="6">
+                    <ul>
+                        <li>OO makes it easy for new types to extend existing interfaces</li>
+                        <ul>
+                            <li>ArrayList, LinkedList, Stack all implement same interface</li>
+                            <li>You can add a new type easily</li>
+                        </ul>
+                        <li>Functional languages make it easy to add functions over existing types</li>
+                        <ul>
+                            <li>conj, nth, count work with list, vector, map</li>
+                            <li>You can add new functions supporting all types</li>
+                        </ul>
+                    </ul>
+                    </font>
+                </section>
+
                 <section data-markdown>
                     ```clj
-                    ; 'if' relies on the position of operands to 
-                    ; associate code with the then branch and
-                    ; the optional else branch.
-                    ; hence the first form is the then branch and second form 
-                    ; is the else branch.
-                    ; type the following on your repl
-                    (if false
-                      "hello" 
-                      (println "bye")
-                      "good bye")
+                    ;; what are protocols ?
+                    ;; we want to encrypt our data
+                    (defprotocol Encryptable
+                      (encrypt [this] "Encrypt the given object"))
 
-                    ; this brings us to the 'do' operator
+                    (extend-type java.lang.String
+                      Encryptable
+                      (encrypt [this] (apply str (reverse this))))
+
+                    (encrypt "a string")
+                    ;;=> "gnirts a"
+                    ;; how about extending a hash map to be Encryptable ?
+                    ;; Encrypt by converting to a string and encrypting that.
+                    ;; what is the type of a hash-map ?
                     ```
                 </section>
 
                 <section data-markdown>
                     ```clj
-                    ; the do operator allows you to wrap up multiple forms
-                    ; and run each of them
-                    (if false
-                      (do 
-                        (println "hello")
-                        (println "world"))
-                      (do 
-                        (println "good bye")
-                        (println "world")))
+                    (extend-type clojure.lang.PersistentArrayMap
+                      Encryptable
+                      (encrypt [this] (encrypt (str this))))
 
-                    ; do returns the value of the last expression evaluated
-                    (do
-                      "clojure"
-                      "is fun") 
+                    (encrypt {})
+                    ;;=> "}{"
                     ```
                 </section>
 
                 <section data-markdown>
                     ```clj
-                    ; the 'when' operator is like a combination of if and do,
-                    ; without the else branch.
-                    ; when allows you to evaluate a number of forms when some 
-                    ; condition is true and always return nil when it is false
-                    (when true
-                      (println (+ 1 2))
-                      (+ 1 2))
+                    ;; if you want to provide implementations of
+                    ;; multiple types at the same time
+                    (extend-protocol Encryptable
+                      java.lang.String
+                      (encrypt [this] (apply str (reverse this)))
+                      clojure.lang.PersistentArrayMap
+                      (encrypt [this] (encrypt (str this))))
                     ```
                 </section>
 
 				        <section>
-                    <h2>Clojure Syntax</h2>
-                    <h4>true, false, nil and boolean expressions</h4>
-                    <p>Clojure has boolean true and false</p>
-                    <p>and nil is used to indicate no value.</p>
-                    <p>Only false and nil are considered logically false</p>
-                    <p>Everything else is logical truth</p>
+                    <h2>Records</h2>
 				        </section>
 
+                <section data-markdown>
+                    ```clj
+                    ;; records are structured data types
+                    ;; and along with deftype provide a way to
+                    ;; implement abstractions defined by protocols
+                    (defrecord Airport [icao iata])
+
+                    ;; they come with 2 factory functions
+                    (->Airport "ZBAA" "PEK")
+
+                    (map->Airport {:icao "ZBAA"
+                                   :iata "PEK"})
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; and for most purposes act like maps
+                    (:iata (map->Airport {:icao "ZBAA"}))
+
+                    (:icao (map->Airport {:icao "ZBAA"}))
+
+                    ;; except that you cannot use them in the
+                    ;; function place
+                    ;; but we will fix that soon for our records
+                    ```
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; if you dissoc a field what happens.
+                    (dissoc (->Airport "ZBAA" "PEK") :icao)
+                    ;; is it still an Airport ?
+
+                    ;; you can also assoc extra keys to it
+                    (assoc (->Airport "ZBAA" "PEK") :city "Beijing")
+                    ;; is it still an Airport ?
+                    ```
+                </section>
+
                 <section>
-                    <pre><code data-sample='code/files/boolean_test.clj'>
-                    </code></pre>
+                    <pre><code data-sample='files/records.clj#place-protocol'></code></pre>
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; can you create a record called City
+                    ;; with 2 fields - name and country
+                    ;; implementing the Place protocol
+                    ```
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#city'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#usage'></code></pre>
+                </section>
+
+
+                <section data-markdown>
+                    ```clj
+                    ;; let's say six months from now I have the
+                    ;; requirement to add a function - is-in
+                    ;; that reports the location of the place.
+                    ;; we could modify the original Place protocol
+                    ;; or extend our types to implement a new protocol
+                    ```
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#is-in'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#is-in-usage'></code></pre>
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; how can I make my Airport record a callable function ?
+                    ;; implement the clojure.lang.IFn interface methods
+                    ;; (invoke [this k] ....)
+                    ;; (invoke [this k not-found] ....)
+
+                    ;; for completeness we should also implement applyTo
+                    ;; but we will ignore that for now
+                    ```
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#callable-records-short'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/records.clj#callable-records'></code></pre>
                 </section>
 
                 <section data-markdown>

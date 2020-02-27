@@ -9,8 +9,11 @@
 
 (defrecord Airport [icao iata])
 
-(->Airport "ZBAA"
-           "PEK")
+;; records provide 2 factory functions
+(type (assoc (->Airport "ZBAA"
+                        nil)
+             :iata "PEK"))
+
 
 (map->Airport {:icao "ZBAA"
                :iata "PEK"})
@@ -37,7 +40,22 @@
 (keys (assoc (map->Airport {:icao "ZBAA" :iata "PEK"})
              :city "Beijing"))
 
-(defrecord Airport [name icao iata lat lon])
+;; = is value and type based
+;; .equals is value-based -- nope, no longer
+;; when you dissoc a key from a record
+;; you end up with a plain map
+(let [m {:icao "ZBAA"
+         :iata "PEK"}
+      air (map->Airport m)]
+  [(= air m) (.equals air m)
+   (= air air) (type air)
+   (type (dissoc air :icao))
+   (record? air)])
+
+(Airport/getBasis)
+
+
+
 
 (->Airport "Indira Gandhi International Airport"
            "VIDP"
@@ -88,6 +106,7 @@
                               "DEL"))
 (def delhi (->City "New Delhi" "India"))
 
+
 (description delhi)
 (description delhi-airport)
 
@@ -124,6 +143,7 @@
 (is-in delhi)
 (is-in delhi-airport)
 
+(description delhi)
 
 
 
@@ -154,3 +174,54 @@
 (evil? {:name ::batman})
 
 
+("str" 1)
+
+([1 2 3] 0)
+
+(defprotocol Encryptable
+  (encrypt [this] "Encrypt the given object"))
+
+(defrecord Airport [icao iata])
+(extend-type java.lang.String
+  Encryptable
+  (encrypt [this] (apply str
+                         (reverse this))))
+
+(encrypt "a string")
+
+(extend-type clojure.lang.PersistentArrayMap
+  Encryptable
+  (encrypt [this] (encrypt (str this))))
+
+(encrypt {:a 1})
+
+
+(extend-protocol Encryptable
+  java.lang.String
+  (encrypt [this] (apply str
+                         (reverse this)))
+  clojure.lang.PersistentArrayMap
+  (encrypt [this] (encrypt (str this))))
+
+
+(defrecord Airport [name city icao iata]
+  clojure.lang.IFn
+  (invoke [this k] (get this k))
+  (invoke [this k not-found] (get this k not-found))
+  (applyTo [this args]
+    (let [n (clojure.lang.RT/boundedLength args
+                                           2)]
+      (case n
+        0 (throw (clojure.lang.ArityException.
+                  n
+                  (.. this (getClass) (getSimpleName))))
+        1 (.invoke this (first args))
+        2 (.invoke this (first args) (second args))
+        3 (throw (clojure.lang.ArityException.
+                  n
+                  (.. this (getClass) (getSimpleName))))))))
+
+;; do clojure records implement IFn ?
+((->Airport "Lohegaon Airport" nil nil nil nil) :name2 "hello")
+((->Airport "Lohegaon Airport" nil nil nil nil) :name)
+(apply (->Airport "Lohegaon Airport" nil nil nil nil) [])
