@@ -548,160 +548,49 @@
                 </section>
 
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; let's first take look at some functions that can 
-                    ; parallelize your code without requiring any code changes
-
-                    ; pvalues returns a lazy sequence of values of the expressions
-                    ; evaluated in parallel
-                    (defn sleeper 
-                    [s thing] 
-                    (Thread/sleep (* 1000 s))
-                    thing)
-
-                    (defn pvs 
-                    [] 
-                    (pvalues
-                    (sleeper 2 :1st)
-                    (sleeper 30 :2nd)
-                    (keyword "3rd")))
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; let's see how much time it takes to get the first
-                    ; value
-                    (time (first (pvs)))
-
-                    ;=> "Elapsed time: 2003.992906 msecs"
-                    ;=> :1st
-
-                    ; the time taken for the first element is equal to
-                    ; the time taken to realize that value
-                    ; but we will see that the time taken to realize subsequent
-                    ; values is as much as the most expensive element before it.
-                    (time (last (pvs)))
-
-                    ;=> "Elapsed time: 30007.241914 msecs"
-                    ;=> :3rd
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; the reason for this is that clojure maintains a sliding window
-                    ; within which all elements are realized and the total time taken
-                    ; is that for the most expensive computation
-
-                    ; generally, the sliding window is of size N + 2, where N is 
-                    ; the number of cores
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; the pmap function is the parallel version of the map function
-                    ; that we have already seen.
-                    ; note the doall to realize the lazy seq
-                    (time 
-                    (doall
-                    (pmap (comp inc (partial sleeper 2)) 
-                    [1 2 3])))
-
-                    ;=> Elapsed time: 1992.638618 msecs
-                    ;=> (2 3 4)
-
-                    ; the total cost of realizing the sequence is again bound
-                    ; by the most expensive operation
-
-                    ; pmap seems to work very well for the above example,
-                    ; so should we replace all calls to map with pmap ?
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; let's do an experiment
-                    ; define a range of 10 million numbers
-                    ; pmap and map over it using a function
-                    ; that multiplies each number by itself
-
-                    ; don't forget to use doall
-
-                    ; what is the time taken by pmap ?
-                    ; by map ?
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    (def l (range 10000000))
-
-                    (time (def a (doall (pmap #(* % %) l))))
-                    ;=> "Elapsed time: 35843.501162 msecs"
-
-                    (time (def a (doall (map #(* % %) l))))
-                    ;=> "Elapsed time: 7848.107447 msecs"
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; whether we should or not replace map with pmap depends
-                    ; on the use case.
-                    ; there is some overhead associated with sending work off to
-                    ; threads, co-ordinating result gathering in proper order.
-                    ; if you are sure that your function cost is higher than this 
-                    ; overhead then use pmap.
-
-                    ; as with all parallel systems, you have to experiment and see what
-                    ; works for your use case. 
-
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; finally there's the pcalls function which takes an arbitrary 
-                    ; number of no argument functions and executes them in parallel
-                    (time (doall 
-                    (pcalls
-                    #(sleeper 2 :first)
-                    #(sleeper 3 :second)
-                    #(keyword "3rd"))))
-
-                    ;=> "Elapsed time: 3003.252293 msecs"
-                    ;=> (:first :second :3rd)            
-
-                    ; pcalls has the same benefits and trade-offs as pvalues and pmap
-                    ```
-                </section-->
-
-                <section data-markdown>
-                    ```clj
-                    ; open the file palindrome_detector_test.clj
-                    ; and make the test cases pass
-                    ```
-                </section>
                 <section>
-                    <pre><code data-sample="code/files/palindrome_detector_test.clj#4-25">
-                    </code></pre>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pvalues'></code></pre>
                 </section>
 
-                <!-- section>
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pvalues-time'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pvalues-time-explanation'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pmap'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pmap-experiment'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pmap-time'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pmap-time-explanation'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/concurrency_parallelism.clj#pcalls'></code></pre>
+                </section>
+
+                <section>
 	                  <h3>Concurrency and Parallelism</h3>
-                    <p>Let's get back to our discussion of concurrency by looking at</p>
                     <ul>
                         <li>Futures</li>
                         <li>Delays</li>
                         <li>Promises</li>
                     </ul>
-                </section-->
+                </section>
 
 
-                <!-- section>
+                <section>
 	                  <h3>Concurrency and Parallelism</h3>
                     <p>Futures, delays and promises allow us to write concurrent code by decoupling</p>
                     <ul>
@@ -709,90 +598,47 @@
                         <li>Task execution</li>
                         <li>Requiring the task's result</li>
                     </ul>
-                </section-->
+                </section>
 
-                <!-- section>
+                <section>
                     <h3>Concurrency and Parallelism</h3>
                     <ul>
                         <li>Our serial code consists of task definitions like <br>(web-api/get-customer 1234)</br></li>
                         <li>As soon as clojure encouters this it executes the task and blocks until the result of the API is available</li>
                         <li>Now let's see how futures, delays and promises let us break this flow</li>
                     </ul>
-                </section-->
+                </section>
 
 
-                <!-- section data-markdown>
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#futures'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#futures-result'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#futures-realized'></code></pre>
+                </section>
+
+                <section data-markdown>
                     ```clj
-                    ; using futures you can define a task and place it on another
-                    ; thread without requiring the result immediately.
-                    (future (Thread/sleep 10000)
-                    (println "this will print after 10 seconds"))
+                    ;; open the file futures_test.clj
+                    ;; and make the test cases pass
 
-                    ; notice how the repl can continue executing other tasks
-                    ; while the future executes in another thread.
+                    ;; how will you wait for a sequence of
+                    ;; futures ?
+                    ;; (map deref s)
 
-                    ; you can fire off a future and forget about it
-                    ; but most likely you are interested in it's result
+                    ;; beware of laziness
+
                     ```
-                </section-->
+                </section>
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; if you noticed when we ran the future we got a funny
-                    ; output on the repl immediately.
-                    ; a future returns a reference that we can use to query it.
-
-                    ; we can deref a future to get it's value 
-                    (let [result (future (println "this will print only once")
-                    (+ 1 1))]
-                    (println "deref: " (deref result))
-                    (println "@: " @result))
-
-                    ; notice that @ is shorthand for deref and dereferencing 
-                    ; the future twice executes it only once
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; you can also call realized? on a future to see if it 
-                    ; is done running
-                    (realized? (future (Thread/sleep 1000)))
-                    ; => false
-
-                    (let [f (future)]
-                    @f
-                    (realized? f))
-                    ;=> true
-
-                    ; we can also supply a timeout while dereferncing futures
-                    (deref (future (Thread/sleep 1000) 0) 10 5)
-
-                    ; one use case for futures could be to send stuff off to a logging
-                    ; function to be executed in another thread
-                    ```
-                </section-->
-
-                <!--section data-markdown>
-                    ```clj
-                    ; delays allow you to define a task without
-                    ; having to execute it immediately or requiring the
-                    ; result
-                    (def a-simple-delay
-                    (delay (let [message "the message from delay"]
-                    (println "First deref:" message)
-                    message))) 
-
-                    ; we can start the execution of a delay by using force or @.
-                    ; just like futures a delay is executed only once and 
-                    ; it's value cached.
-                    (force a-simple-delay)
-
-                    ; notice how the first time 2 messages are printed
-                    ; and subsequently only the value of the delay is returned
-                    @a-simple-delay
-                    ```
-                </section-->
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#delays'></code></pre>
+                </section>
 
                 <!-- section data-markdown>
                     ```clj
@@ -864,72 +710,6 @@
 
                     ; here the future will start running immediately but 
                     ; then block waiting for the promise
-                    ```
-                </section-->
-
-
-                <!-- section data-markdown>
-                    Side Note
-                    List comprehension
-                    -------------------
-                    ```clj
-                    ; for in clojure acts like a list comprehension
-
-                    ; let's say i have 2 collections and i want to
-                    ; multiply each element of first collection with
-                    ; each element of second
-                    (def s1 [1 2 3 4 5])
-                    (def s2 [1 2 3 4 5])
-
-                    (for [x s1 y s2] (* x y))
-                    ;=> (1 2 3 4 5 2 4 6 8 10 3 6 9 12 15 4 8 12 16 20 5 10 15 20 25)
-
-                    ; notice that the right most collection is iterated fastest.
-
-                    ; try writing the above using map
-
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    Side Note
-                    List comprehension
-                    -------------------
-                    ```clj
-                    ; here's what i came up with
-
-                    (mapcat #(map (partial * %) s2) s1)
-
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    Side Note
-                    List comprehension
-                    -------------------
-                    ```clj
-                    ; for supports modifiers let, when and while
-                    (for [x [0 1 2 3 4 5]
-                    :let [y (* x 3)]
-                    :when (even? y)]
-                    y)
-
-                    ;=> (0 6 12)
-
-                    (for [x [0 1 2 3 4 5]
-                    :let [y (* x 3)]
-                    :while (even? y)]
-                    y)
-                    ;=> (0)
-
-                    ; while stops at the first element that evaluates
-                    ; to false
-
-                    ; can you figure out the output of this ?
-                    (for [x [0  2  4 5]
-                    :let [y (* x 3)]
-                    :while (even? y)]
-                    y)
                     ```
                 </section-->
 
