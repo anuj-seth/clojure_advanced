@@ -640,80 +640,34 @@
                     <pre><code data-sample='files/futures_delays_promises.clj#delays'></code></pre>
                 </section>
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; one use case for delays could be to fire off a function
-                    ; to be executed when the first out of multiple futures finishes
-                    (let [notify (delay (send-email "blah@gmail.com"))]
-                    (doseq [idx (range 10)]
-                    (future (do-some-long-work idx)
-                    (force notify))))  
-
-                    ; note that even though (force notify) will be executed multiple
-                    ; times from different threads the delay body only gets executed once.
-
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; promises are placeholders for values that can be delivered
-                    ; by executing threads later on.
-                    ; promises 
-                    (def x (promise))
-                    (def y (promise))
-                    (def z (promise))
-
-                    (future (deliver z (+ @x @y)))
-
-                    (future (Thread/sleep 2000) (deliver x 42))
-
-                    (future (Thread/sleep 2000) (deliver y 42))
-
-                    @z
-                    ;=> 84
-
-                    ; promises block if we try to derefernce them before
-                    ; a value has been delivered.
-                    ; calling deliver multiple times has no effect
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; let's try to see how we can use promises
-
-                    ; we want to fire off a number of tasks but we are only
-                    ; interested in a logically true return value
-                    (let [my-result (promise)]
-                    (doseq [idx (range 10)]
-                    (future (if-let [answer (some-function idx)]
-                    (deliver my-result answer))))
-                    (println "and the answer is: " @my-result))
-
-                    ; note that even though deliver might be called multiple times 
-                    ; only the first one has any effect
-
-                    ; also we can provide a time out for the deref
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; another use case for promises is as a callback
-                    ; i.e. to execute some piece of code once some 
-                    ; other code finishes
-                    (let [the-promise (promise)]
-                    (future (println "the promised value is:" @the-promise))
-                    (Thread/sleep 10000)
-                    (deliver the-promise 42))
-
-                    ; here the future will start running immediately but 
-                    ; then block waiting for the promise
-                    ```
-                </section-->
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#delay-example'></code></pre>
+                </section>
 
                 <!-- section>
+                     <pre><code data-sample='files/futures_delays_promises.clj#delay-closure'></code></pre>
+                     </section-->
+
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#promises'></code></pre>
+                </section>
+
+                <!--section>
+                     <pre><code data-sample='files/futures_delays_promises.clj#promise-example'></code></pre>
+                     </section-->
+
+                <section>
+                    <pre><code data-sample='files/futures_delays_promises.clj#promise-example-2'></code></pre>
+                </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; open the file promised_data_pipeline_test.clj
+                    ;; and make the test case pass.
+                    ```
+                </section>
+
+                <section>
                     <h3>Concurrency and State</h3>
                     <ul>
                         <li>Java and other imperative languages manage shared state concurrency by using locks</li>
@@ -721,9 +675,10 @@
                         <li>Let's talk about how Clojure manages mutating state and concurrency</li>
                         <li>But I said clojure has immutable data structures !!!</li>
                     </ul>
-                </section-->
+                </section>
 
-                <!-- section>
+
+                <section>
                     <h3>Concurrency and State</h3>
                     <p>We will take a look at the following clojure reference types</p>
                     <ul>
@@ -731,52 +686,21 @@
                         <li>Refs</li>
                         <li>Agents</li>
                     </ul>
-                </section-->
+                </section>
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; atom is a reference type used to store values
-                    ; and atomically update them when required.
-                    ; atoms are thread safe and can be used across threads
-                    ; as light weight shared data.
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#atoms'></code></pre>
+                </section>
 
-                    (def counter (atom 0)) 
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#atom-ops'></code></pre>
+                </section>
 
-                    ; we can use the familiar deref operators to get the
-                    ; atom's value
-                    @counter
-                    (deref counter)
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#atom-ops-2'></code></pre>
+                </section>
 
-                    ; note that blocking on dereference does not make sense in
-                    ; case of atoms. it will always return the atom's current value
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; to update an atom to a new state we use swap!
-                    (swap! counter inc)
-
-                    ; dereferencing the atom after a swap! will show 
-                    ; the new value
-                    @counter
-                    ;=> 1
-
-                    ; note that swap! works synchronously so your thread
-                    ; will block until the update function returns
-
-                    ; we can also supply a function with multiple arguments
-                    (swap! counter * 2 3)
-
-                    ; this gets translated to (update-fn current-value args)
-
-                    ; if you just want to update state without caring about
-                    ; previous value you can just use reset!
-                    (reset! counter -1)
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
+                <section data-markdown>
                     ```clj
                     ; what happens if two threads call swap! on the same
                     ; atom ? can we lose one of those updates ?
@@ -789,140 +713,63 @@
                     ; 4. if yes, then update atom to new state
                     ; 5. else go through the process again
                     ```
-                </section-->
+                </section>
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; make the below test cases pass
-                    (def counter (atom 0))
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#atom-tests'></code></pre>
+                </section>
 
-                    (= __ @counter)
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#atom-tests-solution'></code></pre>
+                </section>
 
-                    (= __ (do (swap! counter inc)
-                    @counter))
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#refs'></code></pre>
+                </section>
 
-                    (= 5 (do __
-                    @counter))
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#refs-2'></code></pre>
+                </section>
 
-                    (= __ (do (swap! counter + 1 2 3 4 5)
-                    @counter))
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; refs are another reference type that allow you
-                    ; to update the state of multiple entities using
-                    ; transaction semantics
-                    (def account-a (ref {:name "a" :balance 1000}))
-                    (def account-b (ref {:name "b" :balance 200000}))
-
-                    ; we can deref refs to get their value
-                    (:balance @account-a)
-
-                    ; now we want to transfer some money from account-b to a
-                    ; but we want this done as a transaction just like in databases
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; we use alter to  modify refs within a transaction started
-                    ; by dosync
-                    ; calling alter without an enclosing transaction causes
-                    ; an error
-
-                    (dosync
-                    (alter account-a update-in [:balance] + 1000)
-                    (alter account-b update-in [:balance] - 1000))
-
-                    ; if we now check the values of the refs we see
-                    @account-a
-                    ;=> {:name "a", :balance 2000}
-
-                    @account-b
-                    ;=> {:name "b", :balance 199000} 
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
+                <section data-markdown>
                     ```clj
                     ; transactions on refs support the ACI properties, 
                     ; subset of ACID in databases
 
-                    ; they are atomic i.e. all refs are updated or none
-                    ; they are consistent, meaning refs will always have valid states
-                    ; they are isolated i.e. transactions act as if executed serially
+                    ; they are atomic - all refs are updated or none
+                    ; they are consistent- refs will always have valid states
+                    ; they are isolated - transactions are executed serially
 
                     ; if two threads run simultaneous transactions, 
                     ; one of them will retry 
                     ```
-                </section-->
+                </section>
 
-                <!-- section data-markdown>
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#ref-set'></code></pre>
+                </section>
+
+                <section data-markdown>
                     ```clj
-                    ; finally ref-set can be used to update the value of
-                    ; any ref
-
-                    (dosync
-                    (ref-set account-a {:name "a" :balance 0}))
+                    ;; open the file ref_test.clj
+                    ;; and make the test cases pass
                     ```
-                </section-->
+                </section>
 
-                <!-- section data-markdown>
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#agents'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#agent-send-off'></code></pre>
+                </section>
+
+                <section data-markdown>
                     ```clj
-                    ; make the below test cases pass
-
-                    (def the-world (ref "hello"))
-
-                    (= __ (do (dosync (ref-set the-world "better"))
-                    @the-world))
-
-                    (= __ (let [exclamator (fn [x] (str x "!"))]
-                    (dosync (alter the-world exclamator)
-                    (alter the-world exclamator)
-                    (alter the-world exclamator))
-                    @the-world))
-
-                    (= 0 (do __
-                    @the-world))
+                    ;; open the file log_agent.clj
+                    ; and fill in the blanks
                     ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; agents are a reference type that have a queue holding
-                    ; the actions that need to be performed on the agent's value
-
-                    (def simple-agent (agent []))
-
-                    ; we can enqueue an action for the agent by using send
-                    ; or send-off
-
-                    (send simple-agent conj "abcd")
-
-                    @simple-agent
-                    ;=> ["abcd"]
-
-                    ; send returns immediately with the value of the agent 
-                    ; the update on the agent happens in a thread on thread pool
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; what about send-off ?
-                    ; send works with the fixed thread pool and 
-                    ; hence if all your threads are busy your agent may freeze
-
-                    ; send-off potentially spawns a new thread and executes the
-                    ; function  
-
-                    ; this means that send-off may be a bit slower but you should 
-                    ; use it for long running/blocking tasks so as not to block all
-                    ; threads of the fixed thread pool
-                    ```
-                </section-->
+                </section>
 
                 <!-- section data-markdown>
                     ```clj
@@ -935,12 +782,6 @@
                     ```
                 </section-->
 
-                <section data-markdown>
-                    ```clj
-                    ; open the file divisors_test.clj
-                    ; and make the test cases pass
-                    ```
-                </section>
 
                 <section data-markdown>
                     ```clj
