@@ -538,6 +538,14 @@
                 </section>
 
                 <section>
+                    <h2>Types</h2>
+				        </section>
+
+                <section>
+                    <pre><code data-sample='files/types.clj#types'></code></pre>
+                </section>
+
+                <section>
 	                  <h3>Concurrency and Parallelism</h3>
                     <ul>
                         <li>Concurrency and parallelism are two related but different things</li>
@@ -799,12 +807,55 @@
                 </section>
 
                 <section>
+                    <pre><code data-sample='files/core_async.clj#park-vs-block'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/core_async.clj#go-2'></code></pre>
+                </section>
+
+                <section>
                     <pre><code data-sample='files/core_async.clj#go-loop'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/core_async.clj#go-vs-thread'></code></pre>
                 </section>
 
                 <section>
                     <pre><code data-sample='files/core_async.clj#go-pipeline'></code></pre>
                 </section>
+
+                <section data-markdown>
+                    ```clj
+                    ;; open the file channel_pipeline_test.clj
+                    ;; implement the stage function and make the test
+                    ;; case pass
+                    ```
+                </section>
+
+                <section>
+                    <h3>Transducers</h3>
+                    <ul>
+                        <li>Define transformations without tying them to inputs or outputs</li>
+                        <li>Efficient since they do not create intermediate sequences</li>
+                        <li>Lead to cleaner design by seperate transformation from application</li>
+                        <li>Most core sequence functions have a single arity version returning a transducer</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#intro'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#intro-2'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#comp'></code></pre>
+                </section>
+
 
                 <!-- section data-markdown>
                     ```clj

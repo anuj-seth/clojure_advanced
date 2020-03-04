@@ -34,14 +34,7 @@
   Reads values from the in channel as long as it is not closed.
   Closes out channel before exit"
   [in out f]
-  (async/go (loop []
-              (if-some [v (async/<! in)]
-                (let [{:keys [status data] :as full-data} (f v)]
-                  (if (= status :ok)
-                    (async/>! out data)
-                    (println "ERROR: " full-data))
-                  (recur))
-                (async/close! out)))))
+  __)
 
 (defn setup-pipeline
   []
