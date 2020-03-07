@@ -780,6 +780,11 @@
                 </section>
 
                 <section>
+                    <pre><code data-sample='files/atoms_refs_agents.clj#cautionary-tale'></code></pre>
+                </section>
+
+
+                <section>
                     <h3>core.async</h3>
                     <ul>
                         <li>Based on Tony Hoare's CSP work</li>
@@ -857,125 +862,37 @@
                 </section>
 
 
-                <!-- section data-markdown>
-                    ```clj
-                    ; there are other ways of getting concurrency or writing
-                    ; high volume data processing systems in clojure
-                    ; you may want to explore them later
-
-                    ; tranducers
-                    ; core.async
-                    ```
-                </section-->
-
-
-                <section data-markdown>
-                    ```clj
-                    ; this is my solution
-                    (fn [n]
-                      (filter #(zero? (rem n %)) 
-                        (range 1 n))) 
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; write a function that checks if a number is a 
-                    ; perfect number or not
-                    ; a perfect number is one which is equal to
-                    ; the sum of it's divisors
-
-                    (= (__ 6) true)
-
-                    (= (__ 7) false)
-
-                    (= (__ 496) true)
-
-                    (= (__ 500) false)
-
-                    (= (__ 8128) true)
-                    ```
-                </section>
-
                 <section>
                     <h2>Macros</h2>
                     <h3>Code that writes code</h3>
 				        </section>
 
-                <section data-markdown>
-                    ```clj
-                    ; in programming languages like java or c
-                    ; the compiler translates your program text
-                    ; into an intermediate form called the AST but
-                    ; this AST is not accessible to you, the programmer
-
-                    ; in clojure and other lisps the textual representation
-                    ; of your code is coverted to a list data structure which
-                    ; is the AST
-                    ; hence, in clojure all your code is data
-                    ```
+                <section>
+                    <pre><code data-sample='files/macros.clj#intro'></code></pre>
                 </section>
 
-                <section data-markdown>
-                    ```clj
-                    (eval (list + 1 2))
-                    ;=> 3
-
-                    ; note that eval works on a list data structure
-                    ; not a textual representation of it.
-
-                    (eval (concat (list + 1 2) [10]))
-                    ;=> 13
-                    ```
+                <section>
+                    <pre><code data-sample='files/macros.clj#eval'></code></pre>
                 </section>
 
-                <section data-markdown>
-                    ```clj
-                    (eval (list 'def 'lucky-number (concat (list + 1 2) [10])))
-                    ;=> #'user/lucky-number
-                    lucky-number
-                    ;=> 13
-
-                    ; code generators in other languages generate text,
-                    ; but manipulating data is more powerful than manipulating
-                    ; text
-
-                    ```
+                <section>
+                    <pre><code data-sample='files/macros.clj#eval-2'></code></pre>
                 </section>
 
-                <section data-markdown>
-                    ```clj
-                    ; macros are code that return lists to be evaluated
-                    ; by the clojure interpreter
-                    (defmacro infix
-                    [[left-operand operator right-operand]]
-                    (list operator left-operand right-operand))
-
-                    (infix (2 + 3))
-
-                    ; the arguments to a macro are not evaluated.
-                    ; try writing infix as a normal function
-                    ```
+                <section>
+                    <pre><code data-sample='files/macros.clj#infix'></code></pre>
                 </section>
 
-                <section data-markdown>
-                    ```clj
-                    ; we can create lists in macros using list
-                    ; but there's another way.
-                    ; the syntax quote
-                    (eval (list 'def 'lucky-number (concat (list + 1 2) [10])))
-                    ;=> #'user/lucky-number
-                    lucky-number
-                    ;=> 13
+                <section>
+                    <pre><code data-sample='files/macros.clj#quote'></code></pre>
+                </section>
 
-                    (macroexpand-1
-                    (list 'def 'lucky-number (concat (list '+ 1 2) [10])))
-                    ;=> (def lucky-number (+ 1 2 10))
+                <section>
+                    <pre><code data-sample='files/macros.clj#quote-infix'></code></pre>
+                </section>
 
-                    (macroexpand-1 `(def lucky-number ~(concat '(+ 1 2) [10])))
-                    ;=> (def user/lucky-number (+ 1 2 10))
-
-                    ```
+                <section>
+                    <pre><code data-sample='files/macros.clj#quote-infix-answer'></code></pre>
                 </section>
 
                 <section data-markdown>

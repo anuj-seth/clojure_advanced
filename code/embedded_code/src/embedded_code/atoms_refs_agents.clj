@@ -142,3 +142,21 @@
 ;; not to block all threads of the fixed thread pool
 ;; end-sample
 
+;; sample(cautionary-tale)
+;; mutable state is a problem even in clojure
+(def some-shared-state (atom 0))
+
+(defn manipulate
+  []
+  (swap! some-shared-state inc)
+  (map (fn [x]
+         (println "shared state" @some-shared-state)
+         (+ @some-shared-state x))
+       [1 1 1]))
+
+(def x (manipulate))
+
+(def y (manipulate))
+
+;; what do you expect the values of x and y to be ?
+;; end-sample

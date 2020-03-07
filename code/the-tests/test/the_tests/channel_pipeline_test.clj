@@ -4,13 +4,13 @@
              [clojure.core.async :as async]))
 
 (defn parse
-  [line]
-  (let [fields (string/split line #"\|")]
+  [{:keys [data]}]
+  (let [fields (string/split data #"\|")]
     {:data fields
      :status :ok}))
 
 (defn validate
-  [data]
+  [{:keys [data]}]
   (if (= (count data) 5)
     {:status :ok
      :data data}
@@ -19,7 +19,7 @@
      :data data}))
 
 (defn transform
-  [data]
+  [{:keys [data]}]
   (let [ks [:short-date :timestamp :level :trx :log-msg]]
     {:status :ok
      :data (zipmap ks data)}))
@@ -28,7 +28,7 @@
   "Reads a value - v - from the in channel
   and calls the function f on each value.
   If (f v) has value of key :status as :ok then
-  sends the value of the :data key to out channel,
+  sends the (f v) data to out channel,
   else prints the return value of (f v) to the console
   prefixed with ERROR.
   Reads values from the in channel as long as it is not closed.
@@ -61,10 +61,12 @@
         {:keys [in out]} (setup-pipeline)
         good-values (async/thread (drain-until-closed out))]
     (doseq [datum data]
-      (async/>!! in datum))
+      (async/>!! in {:status :ok
+                     :data datum}))
     (async/close! in)
     ;; should we close the out channel ?
     ;; who closes the out channel ?
-    (is (= 4
-           (count (async/<!! good-values))))))
+    (is (= [:ok :ok :ok :ok]
+           (map :status
+                (async/<!! good-values))))))
 
