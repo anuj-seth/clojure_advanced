@@ -9,7 +9,9 @@
 ;; in clojure and other lisps the textual representation
 ;; of your code is coverted to a list data structure which
 ;; is the AST
-;; hence, in clojure all your code is data
+;; hence, in clojure all your code is data and can be
+;; manipulated by the language.
+;; this also goes by the fancy name of homoiconicity
 ;; end-sample
 
 ;; sample(eval)
@@ -61,7 +63,8 @@ x
 ;; sample(quote)
 ;; we can create lists in macros using list
 ;; but there's another way.
-;; the syntax quote
+;; the syntax quote - a reader macro -
+;; is executed when clojure reads your program
 
 ;; we saw this earlier
 (eval (list + 1 2))
@@ -69,40 +72,318 @@ x
 ;; let's use a syntax quote
 ;; and see if you get the same result
 (eval `(+ 1 2))
-
-;; can you run this ?
+;; can you run this on the repl ?
 `(+ 1 2)
+;=> (clojure.core/+ 1 2)
 ;; end-sample
 
 ;; sample(quote-2)
-(eval (list 'def 'x
-            (list map inc '(list 1 2 3))))
+;; symbols inside a syntax quoted form are
+;; namespace qualified to avoid being overshadowed
+;; in the namespace they are used in
+;; atomic values - numbers, strings - evaluate
+;; to themselves
+`x
+`"abcd"
 
-;; ~ is called unquote
-(eval `(def x (map inc
-                   '~(list 1 2 3))))
-
-;; ~@ is unquote splicing
-(let [z [1 2 3]]
-  `(+ ~@z))
+(def x +)
+(def y 1)
+(def z 1)
+`(x y z)
+;=> (user/x user/y user/z)
+(eval `(x y z))
+;=> 2
 ;; end-sample
 
-;; sample(quote-infix)
+;; sample(unquote)
+;; anything preceded by ~ is unquoted
+(def x 1)
+`(+ 1 ~x)
+;=> (clojure.core/+ 1 1)
 
+;; do you see a difference between what above
+;; returns and what below would return ?
+`(+ 1 x)
+;; end-sample
+
+;; sample(unquote-example)
+;; can you convert this to use
+;; syntax quote/unquote ?
+(eval (list 'def 'x
+            (list map inc '(list 1 2 3))))
+x
+;=> (2 3 4)
+;; note: there are multiple ways of
+;; doing this
+;; and all might trip you up while handling
+;; (1 2 3)
+;; end-sample
+
+;; sample(unquote-example-answer)
+;; these differ in when the map is run
+`(def x (map inc '~(list 1 2 3)))
+
+`(def x '~(map inc '(1 2 3)))
+
+;; eval'ing either should return the same result
+(eval `(def x (map inc
+                   '~(list 1 2 3))))
+x
+;=> (2 3 4)
+;; end-sample
+
+;; sample(macroexpand)
+;; debugging macros is tough but macroexpand can help.
+;; it evaluates the first symbol of the form
+;; if it is a macro
+(macroexpand-1 '(when 1 2))
+;;=> (if 1 (do 2))
+
+;; if the first symbol is not a macro then it returns
+;; the form as is
+(macroexpand-1 '(+ 1 2))
+;;=> (+ 1 2)
+
+;; macroexpand repeatedly calls macroexpand-1 until the
+;; first symbol is no longer a macro
+;; clojure.walk/macroexpand-all recursively expands until
+;; no macros remain in the entire form
+;; end-sample
+
+;; sample(macroexpand-2)
+;; try macro expanding our infix macro
 (defmacro infix
   [[left-operand operator right-operand]]
   (list operator left-operand right-operand))
 
+;; can you explain the output of this ?
+(macroexpand-1 '(infix (2 + 3)))
+;;=> (+ 2 3)
+;; end-sample
+
+;; sample(quote-infix)
 ;; can you convert this to use the syntax quote ?
+(defmacro infix
+  [[left-operand operator right-operand]]
+  (list operator left-operand right-operand))
 ;; end-sample
 
 ;; sample(quote-infix-answer)
-
 (defmacro infix
   [[left-operand operator right-operand]]
   `(~operator ~left-operand ~right-operand))
-
 ;; end-sample
+
+;; sample(unquote-splice)
+;; ~@ is unquote splicing
+(let [z [1 2 3]]
+  `(+ ~@z))
+
+;; can you write a macro that takes a list
+;; of numbers as argument, increments each number by 1
+;; and then adds them up
+;; try writing it without using unquote splice first
+;; and then with unquote splice
+;; hint: how do you apply a function over a list ?
+;; end-sample
+
+;; sample(list-add)
+;; if your first attempt was this
+;; and you got an error, let's see why
+(defmacro list-add
+  [l]
+  `(apply + ~(map inc l)))
+
+(macroexpand-1 '(list-add [1 1 1]))
+;=> (clojure.core/apply clojure.core/+ (2 2 2))
+
+(defmacro list-add
+  [l]
+  `(apply + '~(map inc l)))
+
+(macroexpand-1 '(list-add [1 1 1]))
+;=> (clojure.core/apply clojure.core/+ (quote (2 2 2)))
+;; end-sample
+
+;; sample(list-add-splice)
+;; using unquote splicing we get
+(defmacro list-add
+  [l]
+  `(+ ~@(map inc l)))
+
+(list-add (1 1 1))
+;=> 6
+(macroexpand-1 '(list-add (1 1 1)))
+;=> (clojure.core/+ 2 2 2)
+;; end-sample
+
+;; sample(quoting-101-1)
+;; quoting 101
+;; quoting especially nested quotes are hard to parse
+;; - for people
+;; in nested syntax quotes innermost form is expanded first.
+;; if several ~ occur in a row, then leftmost ~ belongs to
+;; innermost syntax-quote.
+;; put another way - tilde matches a syntax-quote if
+;; there are the same number of tildes as syntax-quotes
+;; between them.
+  ``(~~a)
+;;12 21
+;; the numbers tell which ~ matches which syntax quote
+;; and also the order in which they will be expanded
+;; end-sample
+
+;; sample(quoting-101-2)
+;; let's work through an example - step by step
+;; the setup
+(def x `a)
+(def y `b)
+(def a 1)
+(def b 2)
+;; the expression
+``(w ~x ~~y)
+
+;; first step - remove first syntax quote
+`(user/w ~user/x ~user/b)
+
+;; second step - remove second syntax quote
+(user/q user/a 2)
+;; end-sample
+
+;; sample(quoting-101-3)
+;; THIS IS NOT USED
+;; see if you can understand the outputs of this
+;; try on your own before running the let block
+(let [x 9, y '(- x)]
+  (println "1 " `y)
+  (println "2 " ``y)
+  (println "3 " ``~y)
+  (println "4 " ``~~y))
+;; end-sample
+
+;; sample(quoting-101-4)
+;; THIS IS NOT USED
+(let [x 9, y '(- x)]
+  (println "1 " `y)
+  (println "2 " ``y) 
+  (println "3 " ``~y)
+  (println "4 " ``~~y))
+;;=> 1  lsl.core/y
+;;=> 2  (quote lsl.core/y)
+;;=> 3  lsl.core/y
+;;=> 4  (- x)
+;; end-sample
+
+;; sample(ulta-when)
+;; writing your own control structures is another
+;; tradition while learning macros
+;; and it also shows off the flexibility of the
+;; language - try writing a control structure in Java
+
+;; let's assume that when-not does not exist.
+;; we will write our own control structure called
+;; ulta-when
+;; ulta-when evaluates the body forms when the test
+;; expression is false
+;; end-sample
+
+;; sample(ulta-when-as-function)
+;; let's try to write this as a function
+(defn ulta-when
+  [test body]
+  (if (not test)
+     body))
+
+;; i expect this to not print anything
+(ulta-when true (println "test is false"))
+
+;; i expect this to print the message
+(ulta-when false (println "test is false"))
+;; end-sample
+
+;; sample(ulta-when-as-macro)
+(defmacro ulta-when
+  [test body]
+  `(if (not ~test)
+     ~body))
+
+;; i expect this to not print anything
+(ulta-when true (println "test is false"))
+
+;; i expect this to print the message
+(ulta-when false (println "test is false"))
+;; end-sample
+
+;; sample(ulta-when-multiple-forms)
+;; what happens if i want multiple forms evaluated
+;; in the body ?
+(ulta-when false
+           (println "test is false")
+           (+ 1 2))
+
+;; can you make this work ?
+;; end-sample
+
+;; sample(ulta-when-unquote-splice)
+(defmacro ulta-when
+  [test & body]
+  `(if (not ~test)
+     (do ~@body)))
+;; end-sample
+
+;; sample(do-primes)
+;; open the file do_primes_test.clj
+;; and make the test cases pass.
+
+;; there's one helper function already there
+;; write more if you need
+;; end-sample
+
+;; sample(with-timing)
+;; i want to write a macro called with-timing
+;; it will print the time it takes to evaluate
+;; arbitrary input forms.
+;; it's return value should be what the input forms
+;; evaluate to
+
+(with-timing
+  (+ 1 2 3)
+  (clojure.string/reverse "abcd"))
+;;=> Time taken: 2 msecs
+;; "dcba"
+;; end-sample
+
+;; sample(with-timing-error)
+;; here's an attempt
+(defmacro with-timing
+  [& body]
+  `(let [start (System/currentTimeMillis)
+         v (do ~@body)
+         end (System/currentTimeMillis)]
+     (println "Time taken: " (- end start))
+     v))
+
+;; on running this we get an error
+;; let's see that this macro expands to
+(clojure.core/let [user/start (java.lang.System/currentTimeMillis)
+                   user/v (do (+ 1 2))
+                   user/end (java.lang.System/currentTimeMillis)]
+  (clojure.core/println "Time taken: " (clojure.core/- user/end user/start))
+  user/v)
+;; end-sample
+``(w ~x ~~@(list `a `b))
+``(user/w ~user/x ~~@(list `a `b))
+(defmacro list-add
+  [l]
+  `(+ ~@(map #(inc (eval %)) l)))
+
+(defmacro list-add
+  [l]
+  `(apply + (map inc ~~l)))
+
+(macroexpand-1 '(list-add (1 1 (+ 1 1))))
+
+`(def 'x (map inc '~(list 1 2 3)))
 
 (defmacro infix
   [[operand-one operator operand-two & more]]
@@ -126,12 +407,6 @@ x
   `(~op ~lhs ~rhs))
 
 
-(macroexpand-1
- (list 'def 'lucky-number (concat (list '+ 1 2) [10])))
-                                        ;=> (def lucky-number (+ 1 2 10))
-
-(macroexpand-1 `(def lucky-number ~(concat '(+ 1 2) [10])))
-                                        ;=> (def user/lucky-number (+ 1 2 10))
 
 ```
 </section>
