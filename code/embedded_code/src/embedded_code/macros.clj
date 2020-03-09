@@ -513,6 +513,21 @@ x
     `(fn [~fn-arg] (str ~s ~fn-arg))))
 ;; end-sample
 
+;; sample(lsl)
+;; the following example or dare i say project is based
+;; on a blog published by Martin Fowler
+;; https://www.martinfowler.com/articles/languageWorkbench.html
+
+;; there he talks about how you could specify text line parsing
+;; rules in languages like ruby and .net
+
+;; he briefly mentions lisp to say how easy it would be in lisp
+
+;; let's open the file lsl_test.clj
+;; end-sample
+
+
+
 ``(w ~x ~~@(list `a `b))
 ``(user/w ~user/x ~~@(list `a `b))
 (defmacro list-add
