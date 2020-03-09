@@ -353,7 +353,7 @@ x
 ;; "dcba"
 ;; end-sample
 
-;; sample(with-timing-error)
+;; sample(with-timing-ns-qualified-symbols)
 ;; here's an attempt
 (defmacro with-timing
   [& body]
@@ -371,6 +371,148 @@ x
   (clojure.core/println "Time taken: " (clojure.core/- user/end user/start))
   user/v)
 ;; end-sample
+
+;; sample(with-timing-unqualified-symbols)
+;; how can we get unqualified symbols in macros ?
+;; if an unquote returns a symbol it remains unqualified
+`~'c
+`~(symbol "c")
+
+;; changing the macro we get this
+(defmacro with-timing
+  [& body]
+  `(let [~'start (System/currentTimeMillis)
+         ~'v (do ~@body)
+         ~'end (System/currentTimeMillis)]
+     (println "Time taken: " (- ~'end ~'start))
+     ~'v))
+;; end-sample
+
+;; sample(with-timing-variable-capture)
+;; and it seems to work
+(with-timing (Thread/sleep 1000))
+;;=> Time taken:  1000
+;;=> nil
+
+;; but what happens when you run this ?
+(let [start 1000]
+  (with-timing (Thread/sleep start)))
+
+;; try using macroexpand-1 to see what is going
+;; on.
+(let [start 1000]
+  (macroexpand-1 '(with-timing (Thread/sleep start))))
+;; end-sample
+
+;; sample(with-timing-variable-capture-expand)
+(clojure.core/let [start (java.lang.System/currentTimeMillis)
+                   v (do (Thread/sleep start))
+                   end (java.lang.System/currentTimeMillis)]
+  (clojure.core/println "Time taken: " (clojure.core/- end start))
+  v)
+
+;; you have been bitten by variable capture
+;; also called unhygienic macro
+
+;; note: the trick ~'c has it's uses
+;;       remember it when we talk about LSL
+;; end-sample
+
+;; sample(with-timing-gensym-intro)
+;; so how do we write hygienic macros ?
+;; use local vars with really weird names
+;; or we could use gensym to get unique symbols
+(gensym)
+;;=> G__2158
+(gensym "ABCD")
+;;=>ABCD2161
+
+;; and there are also auto-gensyms
+`x#
+;;=> x__2162__auto__
+
+`(x# x#)
+;;=> (x__2165__auto__ x__2165__auto__)
+;; end-sample
+
+;; sample(with-timing-gensym-exercise)
+;; rewrite the with-timing macro to use auto gensyms
+;; end-sample
+
+;; sample(with-timing-gensym-answer)
+(defmacro with-timing
+  [& body]
+  `(let [start# (System/currentTimeMillis)
+         v# (do ~@body)
+         end# (System/currentTimeMillis)]
+     (println "Time taken: " (- end# start#))
+     v#))
+;; end-sample
+
+;; sample(with-timing-gensym-expand)
+(let [start 1000]
+  (macroexpand-1 '(with-timing (Thread/sleep start))))
+
+(clojure.core/let [start__2168__auto__ (java.lang.System/currentTimeMillis)
+                   v__2169__auto__ (do (Thread/sleep start))
+                   end__2170__auto__ (java.lang.System/currentTimeMillis)]
+  (clojure.core/println "Time taken: " (clojure.core/- end__2170__auto__
+                                                       start__2168__auto__))
+  v__2169__auto__)
+;; end-sample
+
+;; sample(macro-returning-fn)
+;; the moral of the story -
+;; always use generated symbols in let bindings
+;; and function args in your macro generated forms
+
+;; let bindings makes sense
+;; but why in function args ?
+;; function args are scoped by the function !!!
+;; end-sample
+
+;; sample(macro-returning-fn-variable-capture)
+;; let's take an example
+;; write a macro called join-join that takes a string
+;; as input and returns a function of one string arg
+;; that joins the two
+((join-join "x") "y")
+;;=> "xy"
+
+(defmacro join-join
+  [s]
+  `(fn [~'l] (str ~s ~'l)))
+
+((join-join "x") "y")
+;;=> "xy"
+;; end-sample
+
+;; sample(macro-returning-fn-variable-capture-explained)
+(defmacro join-join
+  [s]
+  `(fn [~'l] (str ~s ~'l)))
+
+;; but what happens in this case ?
+(def l "z")
+((join-join l) "x")
+
+;; i would assume to see an output "zx"
+;; can you explain what happened and fix it ?
+;; end-sample
+
+;; sample(macro-returning-fn-gensym)
+(defmacro join-join
+  [s]
+  `(fn [l#] (str ~s l#)))
+
+;; or
+
+(defmacro join-join
+  [s]
+  (let [fn-arg (gensym)]
+    `(fn [~fn-arg] (str ~s ~fn-arg))))
+;; end-sample
+
 ``(w ~x ~~@(list `a `b))
 ``(user/w ~user/x ~~@(list `a `b))
 (defmacro list-add
