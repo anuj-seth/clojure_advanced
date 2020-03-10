@@ -46,4 +46,44 @@
    (take 5)
    (map inc)))
 
-(sequence transducer (range 2))
+(sequence transducer (range))
+;; end-sample
+
+;; sample(channel)
+;; more interesting is the fact that channels
+;; and transducers can be combined
+(let [c (async/chan 1 (map count))]
+  (async/>!! c "hello")
+  (println (async/<!! c))
+  (async/>!! c "world")
+  (println (async/<!! c))
+  (async/close! c)
+  (async/<!! c))
+;; end-sample
+
+;; sample(channel-side-note)
+;; a side-note:
+;; channel can also be associated with
+;; sequence generating functions
+(let [c (async/to-chan (range 5))]
+  (loop []
+    (when-let [v (async/<!! c)]
+      (println v)
+      (recur))))
+;; end-sample
+
+;; sample(pipeline)
+;; pipeline brings this all together
+(let [out (async/chan 100 (map count))
+      in (async/to-chan ["hello" "cruel" "world"])]
+  (async/pipeline 4 out identity in)
+  (async/<!! (async/reduce conj
+                           []
+                           out)))
+;; end-sample
+
+;; sample(pipeline-test)
+;; open the file transducer_pipeline_test.clj
+;; implement the function pipeline-process
+;; and make the test case pass
+;; end-sample

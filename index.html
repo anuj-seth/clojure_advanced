@@ -393,7 +393,6 @@
 
                 <section data-markdown>
                     ```clj
-                    ;; what are protocols ?
                     ;; we want to encrypt our data
                     (defprotocol Encryptable
                       (encrypt [this] "Encrypt the given object"))
@@ -519,6 +518,7 @@
                 <section data-markdown>
                     ```clj
                     ;; how can I make my Airport record a callable function ?
+                    ;; records can implement interfaces in their definition
                     ;; implement the clojure.lang.IFn interface methods
                     ;; (invoke [this k] ....)
                     ;; (invoke [this k not-found] ....)
@@ -869,6 +869,26 @@
                     <pre><code data-sample='files/transducers.clj#comp'></code></pre>
                 </section>
 
+                <section>
+                    <pre><code data-sample='files/transducers.clj#sequence'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#channel'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#channel-side-note'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#pipeline'></code></pre>
+                </section>
+
+                <section>
+                    <pre><code data-sample='files/transducers.clj#pipeline-test'></code></pre>
+                </section>
+
 
                 <section>
                     <h2>Macros</h2>
@@ -1030,203 +1050,6 @@
                 <section>
                     <pre><code data-sample='files/macros.clj#lsl'></code></pre>
                 </section>
-
-
-                <section data-markdown>
-                    ```clj
-                    ; another macro
-                    (defmacro on-debug
-                    [& body]
-                    `(when DEBUG (do ~@body)))
-
-                    (def DEBUG false)
-
-                    (on-debug (println "hello"))
-                    ;=> nil
-
-                    (macroexpand-1 '(on-debug (println "hello")))
-                    ;=> (clojure.core/when user/DEBUG (do (println "hello")))
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; that seems vaguely cool, but why should you care ?
-                    ; macros let the programmer extend the langauge to
-                    ; fit your problem domain.
-
-                    ; even clojure defines lots of essential functionality
-                    ; as macros - and, or, when
-                    ```
-                </section>
-
-                <!-- section>
-                    <h3>Organizing your project</h3>
-                    <p>Leiningen is the most prevalent build tool for clojure</p>
-                    <p>Boot is another one gaining in popularity</p>
-                    <p>We will focus on leiningen for now</p>
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; to create a new project we can run the following
-
-                    lein new app my-app
-
-                    ; this will create a directory structure that looks like
-
-                    <pre class="pygments highlight"><code data-lang="clojure" class="block"><span class="tok-err">|</span> <span class="tok-nv">.gitignore</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">doc</span>
-                        <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-nv">intro.md</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">project.clj</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">README.md</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">resources</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">src</span>
-                        <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-nv">my_app</span>
-                        <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-nv">core.clj</span>
-                        <span class="tok-err">|</span> <span class="tok-nv">test</span>
-                        <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-nv">my_app</span>
-                        <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-err">|</span> <span class="tok-nv">core_test.clj</span>
-                    </code></pre>
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; let's take a look at some of the important pieces there
-
-                    ; note that the hyphens in your project name are changed to 
-                    ; underscores in the directory and file names
-
-                    ; project.clj holds the configuration and dependencies
-
-                    ; core.clj is a dummy starting point for your project
-
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; some useful commands are
-
-                    lein deps
-
-                    lein compile
-
-                    lein run
-
-                    lein repl
-
-                    lein uberjar
-                    ```
-                </section-->
-
-                <!-- section data-markdown>
-                    ```clj
-                    ; write a function that returns intersection of two sets
-                    ; i.e. items common to both sets
-
-                    (= (__ #{0 1 2 3} #{2 3 4 5}) #{2 3})
-
-                    (= (__ #{0 1 2} #{3 4 5}) #{})
-
-                    (= (__ #{:a :b :c :d} #{:c :e :a :f :d}) #{:a :c :d})
-
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; here's one solution
-
-                    #(set (filter  %1 %2))
-                    ```
-                </section-->
-
-                <section>
-                    <h3>Java interop</h3>
-                    <ul>
-                        <li>Clojure has seamless access to java libraries since it runs on the JVM</li>
-                        <li>This allows clojure to use the extensive Java eco-system of libraries</li>
-                    </ul>
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; we can call methods on an object using the
-                    ; (.methodName object) notation
-
-                    ; since clojure strings are implemented as
-                    ; java strings it allows us to do this
-
-                    (.toUpperCase "hello world")
-                    ;=> "HELLO WORLD"
-
-                    (.indexOf (.toUpperCase "hello world") "W")
-                    ;=> 6
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; and we can use the threading macro for jave interop
-                    ; to apply multiple methods
-
-                    (.. "hello world"
-                      toUpperCase 
-                      (indexOf "W"))
-                    ;=> 6
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; we can call static methods of classes or
-                    ; access static fields as follows
-
-                    (java.lang.Math/abs -3)
-                    ;=> 3
-
-                    java.lang.Math/PI
-                    ;=> 3.141592653589793
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; we can create new objects in two ways
-
-                    (new String)
-                    ;=> ""
-
-                    (String.)
-                    ;=> ""
-
-                    (String. "hello world")
-                    ;=> "hello world"
-                    ```
-                </section>
-
-                <section data-markdown>
-                    ```clj
-                    ; we can create new objects in two ways
-                    (let [s (String. "hello world")]
-                      (.. s
-                        toUpperCase
-                        (indexOf "W")))
-                    ```
-                </section>
-
-                
-
-                <section>
-                    <h2>Resources</h2>
-                    <ul>
-                        <li>https://clojuredocs.org/</li>
-                        <li>http://www.4clojure.com/</li>
-                        <li>http://www.braveclojure.com/clojure-for-the-brave-and-true/</li>
-                    </ul>
-	              </section>
 
                 <section>
 	                  <h3>End Note</h3>

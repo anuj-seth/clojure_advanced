@@ -518,10 +518,11 @@ x
 ;; on a blog published by Martin Fowler
 ;; https://www.martinfowler.com/articles/languageWorkbench.html
 
-;; there he talks about how you could specify text line parsing
-;; rules in languages like ruby and .net
+;; there he talks about how you could specify text line
+;; parsing rules in languages like ruby and .net
 
-;; he briefly mentions lisp to say how easy it would be in lisp
+;; he briefly mentions lisp to say how easy it would be
+;; in lisp
 
 ;; let's open the file lsl_test.clj
 ;; end-sample
