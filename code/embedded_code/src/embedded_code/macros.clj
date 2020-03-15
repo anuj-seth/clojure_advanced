@@ -247,7 +247,7 @@ x
 `(user/w ~user/x ~user/b)
 
 ;; second step - remove second syntax quote
-(user/q user/a 2)
+(user/w user/a 2)
 ;; end-sample
 
 ;; sample(quoting-101-3)
@@ -513,6 +513,46 @@ x
     `(fn [~fn-arg] (str ~s ~fn-arg))))
 ;; end-sample
 
+;; sample(println-dbg)
+;; you need a way to debug your code 
+;; putting println everywhere is tedious
+(let [random-fn #(rand-int 100)
+      x (+ 1 (random-fn))
+      y (* x x)]
+  (+ x y))
+
+(let [random-fn #(rand-int 100)
+      x (+ 1 (let [r (random-fn)]
+               (println "(random-fn) call returned " r)
+               r))
+      _ (println x)
+      y (* x x)]
+  (+ x y))
+;; end-sample
+
+;; sample(dbg-dbg)
+(let [random-fn #(rand-int 100)
+      x (+ 1 (dbg (random-fn)))
+      y (dbg (* x x))]
+  (+ (dbg x) y))
+;;=> (random-fn) = 8
+;;=> (* x x) = 81
+;;=> x = 9
+;;=> 90
+
+;; write a macro called dbg which takes an
+;; expression. prints that expression and it's
+;; value and returns the value
+;; end-sample
+
+;; sample(dbg-macro)
+(defmacro dbg
+  [x]
+  `(let [x# ~x]
+     (println '~x "=" x#)
+     x#))
+;; end-sample
+
 ;; sample(lsl)
 ;; the following example or dare i say project is based
 ;; on a blog published by Martin Fowler
@@ -527,54 +567,35 @@ x
 ;; let's open the file lsl_test.clj
 ;; end-sample
 
+;; sample(macros-difficult)
+;; macros are difficult to get right
+;; end-sample
 
+;; sample(macros-are-not-values)
+;; macros unlike functions are not values
+;; you cannot pass macros around like functions
 
-``(w ~x ~~@(list `a `b))
-``(user/w ~user/x ~~@(list `a `b))
-(defmacro list-add
-  [l]
-  `(+ ~@(map #(inc (eval %)) l)))
+;; any of you ever tried to do something like
+;; this and got an error
+(apply and [true false])
 
-(defmacro list-add
-  [l]
-  `(apply + (map inc ~~l)))
+;; this also means that you cannot use macros
+;; with map, filter, reduce
+;; or put them in vectors, maps, etc
+;; end-sample
 
-(macroexpand-1 '(list-add (1 1 (+ 1 1))))
+;; sample(but-i-never-wrote-a-macro)
+;; if you have never written a macro
+;; don't feel bad
 
-`(def 'x (map inc '~(list 1 2 3)))
+;; this is a quote from Timothy Baldridge on slack
+;; Clojure has a different philosophy: use data,
+;; manipulate data, and use that data to drive
+;; function composition.
 
-(defmacro infix
-  [[operand-one operator operand-two & more]]
-  `(for [[op# arg#] (reverse (partition 2 ~more))]
-     (op# arg#)
-   ))
-(infix (2 + 3 - 4 + 5 + 7))
+;; more from the same conversation though not by Timothy
+;; Trying to work on a codebase where someone else tried
+;; to grow a language is hell.
 
-(defn infix
-  [& args]
-  (loop [[lhs op rhs & more] args]
-    (if (nil? op)
-      lhs
-      (recur (cons (op lhs rhs)
-                   more)))))
-
-(infix 2 + 3 - 4 + 5 + 7)
-
-(defmacro infix
-  [[lhs op rhs & args]]
-  `(~op ~lhs ~rhs))
-
-
-
-```
-</section>
-
-
-(defmacro dot-product
-  [[a b c]]
-  (println a b c)
-  (b a c))
-
-(defn dot-product
-  [[a b c]]
-  (b a c))
+;; Hell is someone else's abstractions
+;; end-sample
