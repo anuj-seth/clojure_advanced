@@ -19,11 +19,16 @@
         in-arg (gensym)]
     `(defmethod ~(symbol "parse") ~mapping-type
        [~in-arg]
-       ~(merge {:type `~tp}
+       ~(merge {:type tp}
                (into {}
-                     (for [[s# e# k#] body]
-                       [(keyword k#) `(subs ~in-arg ~s# (inc ~e#))]))))))
+                     (for [[s e k] body]
+                       [(keyword k) `(subs ~in-arg ~s (inc ~e))]))))))
 
+(macroexpand-1 '(defmapping service-call "SVCL"
+                  (4 17 customer-name) 
+                  (19 22 customer-id)
+                  (24 26 call-type-code)
+                  (28 35 date-of-call-string)))
 
 ;; We want users to be able to give parsing rules for lines
 (defmapping header "#123")

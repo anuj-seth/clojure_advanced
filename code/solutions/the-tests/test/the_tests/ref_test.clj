@@ -28,3 +28,32 @@
                       #(book-adder "Feet Of Clay" "Terry Pratchett" :s2)
                       #(book-adder "Good Omens" "Terry Pratchett" :s2)))
              [@books @shelves])))))
+
+
+
+
+
+(let [c (async/chan)
+      go-and-loop (async/go
+                    (loop [acc []]
+                      (if-let [v (async/<! c)]
+                        (recur (conj acc (str ".." v "..")))
+                        acc)))]
+  (async/go-loop [x 0]
+    (if (< x 10)
+      (do 
+        (async/>! c x)
+        (recur (inc x)))))
+  (async/close! c)
+  (async/<!! go-and-loop))
+
+
+
+
+
+
+
+
+
+
+

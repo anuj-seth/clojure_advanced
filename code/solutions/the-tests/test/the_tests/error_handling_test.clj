@@ -22,6 +22,13 @@
     {:status :ok
      :data (zipmap ks data)}))
 
+(defn write-to-db
+  [{:keys [data] :as full-data}]
+  {:status :ok
+   ;; below are presumably the ID column values
+   ;; returned by the DB
+   :data [1 2 3 4]})
+
 (defn ok-or-never
   "Call f on the data as long as status is :ok"
   [f {:keys [status msg] :as data}]
@@ -38,7 +45,8 @@
         after-processing (map #(->> {:status :ok :line %}
                                      (ok-or-never parse)
                                      (ok-or-never validate)
-                                     (ok-or-never transform))
+                                     (ok-or-never transform)
+                                     (ok-or-never write-to-db))
                               data)]
     (is (= [:ok :ok :ok :ok :error]
            (map :status after-processing)))

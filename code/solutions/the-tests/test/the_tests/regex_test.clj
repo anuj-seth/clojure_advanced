@@ -41,9 +41,9 @@
   ;; can you find all the 4 letter words ?
   ;; re-seq also behaves like re-matches/re-find
   ;; when groups are used
-  (is (= ["over" "lazy"]
+  (is (= ["over" "lazy" "dogs"]
          (map second 
-              (re-seq #"\s(\w{4})\s"
+              (re-seq #"\s(\w{4})\b"
                       "a quick brown fox jumps over the lazy dogs")))))
 
 (deftest replace-test

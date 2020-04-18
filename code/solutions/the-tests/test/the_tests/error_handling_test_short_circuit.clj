@@ -22,6 +22,13 @@
     {:status :ok
      :data (zipmap ks data)}))
 
+(defn write-to-db
+  [{:keys [data] :as full-data}]
+  {:status :ok
+   ;; below are presumably the ID column values
+   ;; returned by the DB
+   :data [1 2 3 4]})
+
 (defn ok-or-exit
   [f {:keys [status msg] :as data}]
   (if (= :ok status)
@@ -37,7 +44,7 @@
         after-processing (map (fn [line]
                                 (reduce #(ok-or-exit %2 %1)
                                         {:status :ok :line line}
-                                        [parse validate transform]))
+                                        [parse validate transform write-to-db]))
                               data)]
     (is (= [:ok :ok :ok :ok :error]
            (map :status after-processing)))

@@ -22,6 +22,13 @@
     {:status :ok
      :data (zipmap ks data)}))
 
+(def write-to-db
+  [{:keys [data] :as full-data}]
+  {:status :ok
+   ;; below are presumably the ID column values
+   ;; returned by the DB
+   :data [1 2 3 4]})
+
 (defn ok-or-never
   "Call f on the data as long as status is :ok"
   [f {:keys [status msg] :as data}]
